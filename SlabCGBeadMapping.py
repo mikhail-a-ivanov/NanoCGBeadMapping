@@ -5,12 +5,11 @@ from slabInit import Initialize
 from beadMapping import CGBeadMappingMain, FindSlabLayers, CGbeadHistogram
 
 start = timer()
-atoms, CGbeads, spacings = Initialize('anatase-101-POPE.gro', '1H151', 16, 16, 9)
+atoms, CGbeads, spacings = Initialize('anatase-101-POPE.gro', '1H151', 16, 16, 9, 0.)
+#atoms, CGbeads, spacings = Initialize('rutile-101-DMPC.gro', '1H234', 18, 18, 9, 0.)
 AllCGBead_AtomIndexes = CGBeadMappingMain(atoms, CGbeads, spacings)
 CGbeads_Surface, CGbeads_FirstLayer = FindSlabLayers(CGbeads, AllCGBead_AtomIndexes)
 end = timer()
-
-print(len(CGbeads_FirstLayer), len(CGbeads_Surface), len(AllCGBead_AtomIndexes))
 
 CGbeadHistogram(AllCGBead_AtomIndexes, "All atoms", 100)
 CGbeadHistogram(CGbeads_Surface, "Surface atoms", 100)
