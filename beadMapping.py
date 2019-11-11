@@ -1,11 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from slabInit import Initialize
 
-def CGBeadMappingMain(filename, resname, x_points, y_points, z_points):
-    
-    atoms, CGbeads, spacings = Initialize(filename, resname, x_points, y_points, z_points)
-    
+def CGBeadMappingMain(atoms, CGbeads, spacings):
     # Creating a list of atom indeces that are assigned to a certain CG bead
     AllCGBead_AtomIndexes = []
     for i in range(len(CGbeads)):
@@ -40,12 +36,54 @@ def CGBeadMappingMain(filename, resname, x_points, y_points, z_points):
 
     return AllCGBead_AtomIndexes
 
-def CGbeadHistogram(AllCGbead_AtomIndexes, Nbins):
+# Find CG beads that belong to the surface and first layers and bulk
+
+def FindSlabLayers(CGbeads, AllCGBead_AtomIndexes):
+    # Generate an array which contains unique Z-coordinate values
+    values_z = np.unique(CGbeads.T[2])
+
+    # Surface CG beads have either minimum or maximum values of Z-coordinate 
+    surface_z = [values_z[0], values_z[len(values_z)-1]]
+    # First subsurface CG beads have next minimum or next maximum values of Z-coordinate
+    first_layer_z = [values_z[1], values_z[len(values_z)-2]]
+
+    # Set coordinate tolerance value for comparing floats
+    tol = 1e-5
+
+    # Construct an array of surface CG beads indexes
+    CGbeads_surface_indexes = []
+    for CGbead_index in range(len(CGbeads)):
+        if surface_z[0] - tol <= CGbeads[CGbead_index][2] <= surface_z[0] + tol:
+            CGbeads_surface_indexes.append(CGbead_index)
+        elif surface_z[1] - tol <= CGbeads[CGbead_index][2] <= surface_z[1] + tol:
+            CGbeads_surface_indexes.append(CGbead_index)
+
+    CGbeads_surface_indexes = np.array(CGbeads_surface_indexes)
+
+    # Construct an array of first subsurface CG beads indexes
+    CGbeads_first_layer_indexes = []
+    for CGbead_index in range(len(CGbeads)):
+        if first_layer_z[0] - tol <= CGbeads[CGbead_index][2] <= first_layer_z[0] + tol:
+            CGbeads_first_layer_indexes.append(CGbead_index)
+        elif first_layer_z[1] - tol <= CGbeads[CGbead_index][2] <= first_layer_z[1] + tol:
+            CGbeads_first_layer_indexes.append(CGbead_index)
+            
+    CGbeads_first_layer_indexes = np.array(CGbeads_first_layer_indexes)
+            
+    # Construct arrays of surface and first subsurface from the main array
+    CGbeads_Surface = np.take(AllCGBead_AtomIndexes, CGbeads_surface_indexes)
+    CGbeads_FirstLayer = np.take(AllCGBead_AtomIndexes, CGbeads_first_layer_indexes)
+    
+    return CGbeads_Surface, CGbeads_FirstLayer
+
+
+def CGbeadHistogram(AllCGbead_AtomIndexes, label, Nbins):
     atoms_in_CGbead = []
     for CGbead in AllCGbead_AtomIndexes:
         atoms_in_CGbead.append(len(CGbead))
     atoms_in_CGbead = np.array(atoms_in_CGbead)
     fig = plt.figure(figsize=(12,7))
+    plt.title(label)
     plt.ylabel('Count', size=20)
     plt.xlabel('Number of atoms per CG bead', size=20)
     plt.grid(b=True, which='major' , linestyle='--', color= 'grey', linewidth=1, zorder=1)
