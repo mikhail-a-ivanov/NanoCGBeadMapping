@@ -24,15 +24,32 @@ def CGBeadMappingMain(atoms, CGbeads, spacings):
     # Getting global (or flat) indices of N (N = len(atoms)) shortest distances
     print("Sorting distances...")
     closestAtoms = np.argsort(AllDistances, axis=None)[:len(atoms)]
+    #print(closestAtoms)
+    #print(np.take(AllDistances, closestAtoms, axis=None))
 
     # We can get the atom index and CG bead index from the global (flat) index of the distance
-    # By modulo operation we get the atom index, by floor division we get the CG bead index,
+    # By modulo operation we get the CG bead index, by floor division we get the atom index,
     # that are separated by the calculated distance
-    atomIndices = closestAtoms % len(atoms)
-    CGbeadIndices = closestAtoms // len(atoms)
+    atomIndices = closestAtoms // len(CGbeads)
+    CGbeadIndices = closestAtoms % len(CGbeads)
 
+    # Calculating a half of grid cell diagonal from spacings to compare it with
+    # the distances between CG bead and assigned atoms
+    # We take half of the diagonal because the CG bead is located in the center
+    gridCelldiag = np.sqrt(spacings[0]**2 + spacings[1]**2 + spacings[2]**2) / 2
+
+    print("Assigning atoms to CG beads and checking distances...")
+    warningCounter = 0
     for i in range(len(atoms)):
         AllCGBead_AtomIndexes[CGbeadIndices[i]].append(atomIndices[i])
+        if AllDistances[atomIndices[i]][CGbeadIndices[i]] > gridCelldiag:
+            warningCounter += 1
+            print("Distance between atom", atomIndices[i], "and CG bead", CGbeadIndices[i], 
+            "is larger than half of the grid cell diagonal.")
+    if warningCounter == 0:
+        print("All distances between CG beads and assigned atoms are within half of the grid cell diagonal.")
+    else:
+        print(warningCounter, "distances are larger than half of the grid cell diagonal.")
 
     return AllCGBead_AtomIndexes
 
