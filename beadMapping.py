@@ -38,18 +38,90 @@ def CGBeadMappingMain(atoms, CGbeads, spacings):
     # We take half of the diagonal because the CG bead is located in the center
     gridCelldiag = np.sqrt(spacings[0]**2 + spacings[1]**2 + spacings[2]**2) / 2
 
-    print("Assigning atoms to CG beads and checking distances...")
-    warningCounter = 0
+    print("Assigning atoms to CG beads...")
+   
     for i in range(len(atoms)):
         AllCGBead_AtomIndexes[CGbeadIndices[i]].append(atomIndices[i])
+
+    print("Checking the total number of atoms")
+    atomCheckSum = 0
+    for CGbead_index in range(len(AllCGBead_AtomIndexes)):
+        atomCheckSum += len(AllCGBead_AtomIndexes[CGbead_index])
+
+    print(atomCheckSum)
+
+
+    print("Fixing atom distribution...")
+    warningCounter = 0
+    atomsThreshold = 4
+
+    for CGbead_index in range(len(AllCGBead_AtomIndexes)):
+        NatomsInBead = len(AllCGBead_AtomIndexes[CGbead_index])
+        
+        if NatomsInBead < atomsThreshold:
+            print("Fixing atom distribution for CG bead", CGbead_index, ":", AllCGBead_AtomIndexes[CGbead_index])
+            print("Number of atoms in the CG bead", CGbead_index, "is", NatomsInBead)
+            CGbeadAtomDistances = np.argsort(AllDistances.T[CGbead_index])
+            #print(AllCGBead_AtomIndexes[CGbead_index])
+            #print(CGbeadAtomDistances[0:6])
+            #print(CGbeadAtomDistances[NatomsInBead])
+"""
+        while NatomsInBead < atomsThreshold:
+            for CGbead in AllCGBead_AtomIndexes:
+                if CGbeadAtomDistances[NatomsInBead] in CGbead:
+                    print("Picking CG bead", CGbead)
+                    CGbead.remove(CGbeadAtomDistances[NatomsInBead])
+                    print("Removing atom", CGbeadAtomDistances[NatomsInBead], "from CG bead", CGbead)
+
+            AllCGBead_AtomIndexes[CGbead_index].append(CGbeadAtomDistances[NatomsInBead])
+            print("Adding atom", CGbeadAtomDistances[NatomsInBead], "to CG bead", CGbead_index, ":", AllCGBead_AtomIndexes[CGbead_index])
+            NatomsInBead += 1
+            print("Number of atoms in the CG bead", CGbead_index, "now is", NatomsInBead, "\n")
+"""
+
+        while NatomsInBead < atomsThreshold:
+            for CGbead in AllCGBead_AtomIndexes:
+                    
+                try:
+                    CGbead.remove(CGbeadAtomDistances[NatomsInBead])
+                    print("Picking CG bead", CGbead)
+                    print("Removing atom", CGbeadAtomDistances[NatomsInBead], "from CG bead", CGbead)
+                except ValueError:
+                    print("Cannot find atom", CGbeadAtomDistances[NatomsInBead],)
+
+            AllCGBead_AtomIndexes[CGbead_index].append(CGbeadAtomDistances[NatomsInBead])
+            print("Adding atom", CGbeadAtomDistances[NatomsInBead], "to CG bead", CGbead_index, ":", AllCGBead_AtomIndexes[CGbead_index])
+            NatomsInBead += 1
+            print("Number of atoms in the CG bead", CGbead_index, "now is", NatomsInBead, "\n")
+        
+        
+        
+        
+      
+
+
+    print("Checking the distances between CG beads and assigned atoms...")
+    for i in range(len(atoms)):
         if AllDistances[atomIndices[i]][CGbeadIndices[i]] > gridCelldiag:
             warningCounter += 1
             print("Distance between atom", atomIndices[i], "and CG bead", CGbeadIndices[i], 
             "is larger than half of the grid cell diagonal.")
+
     if warningCounter == 0:
         print("All distances between CG beads and assigned atoms are within half of the grid cell diagonal.")
     else:
         print(warningCounter, "distances are larger than half of the grid cell diagonal.")
+
+
+    print("Checking the total number of atoms")
+    atomCheckSum = 0
+    for CGbead_index in range(len(AllCGBead_AtomIndexes)):
+        atomCheckSum += len(AllCGBead_AtomIndexes[CGbead_index])
+
+    print(atomCheckSum)
+
+    #assert atomCheckSum == len(atoms), "Total number of atoms does not match the original number!"
+    
 
     return AllCGBead_AtomIndexes
 
