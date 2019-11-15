@@ -81,25 +81,40 @@ def CGBeadMappingMain(atoms, CGbeads, spacings):
     print("Fixing atom distribution...")
     
     atomsThreshold = 4
+    smallBeads = 0
+    Nfixes = 0
 
-    for CGbead_index in range(len(AllCGBead_AtomIndexes)):
-        NatomsInBead = len(AllCGBead_AtomIndexes[CGbead_index])
+    for CGbead_index1 in range(len(AllCGBead_AtomIndexes)):
+        NatomsInBead = len(AllCGBead_AtomIndexes[CGbead_index1])
 
         if NatomsInBead < atomsThreshold:
-            CGBeadAtomDistances = np.argsort(AllDistances.T[CGbead_index])
+            CGBeadAtomDistances = np.argsort(AllDistances.T[CGbead_index1])
+            smallBeads += 1
 
             while NatomsInBead < atomsThreshold:
-                #print("Fixing atom distribution for CG bead", CGbead_index, ":", AllCGBead_AtomIndexes[CGbead_index])
-                #print("Number of atoms in the CG bead", CGbead_index, "is", NatomsInBead)
+                print("Fixing atom distribution for CG bead", CGbead_index1, ":", AllCGBead_AtomIndexes[CGbead_index1])
+                print("Number of atoms in the CG bead", CGbead_index1, "is", NatomsInBead)
 
-                for CGbead in AllCGBead_AtomIndexes:
-                    if CGBeadAtomDistances[NatomsInBead] in CGbead:
-                        CGbead.remove(CGBeadAtomDistances[NatomsInBead])
-                
-                AllCGBead_AtomIndexes[CGbead_index].append(CGBeadAtomDistances[NatomsInBead])
-                NatomsInBead += 1
-               
+                for CGbead_index2 in range(len(AllCGBead_AtomIndexes)):
+                    if (#isNeighbor(CGbeads[CGbead_index1], CGbeads[CGbead_index2], spacings) and#
+                        NatomsInBead < len(AllCGBead_AtomIndexes[CGbead_index2]) and
+                        #len(AllCGBead_AtomIndexes[CGbead_index2]) > NatomsInBead and# 
+                        CGBeadAtomDistances[NatomsInBead] in AllCGBead_AtomIndexes[CGbead_index2]):
 
+                        Nfixes += 1
+
+                        print("Picking CG bead", CGbead_index2, ":", AllCGBead_AtomIndexes[CGbead_index2])
+                        print("Removing atom", CGBeadAtomDistances[NatomsInBead])
+
+                        AllCGBead_AtomIndexes[CGbead_index2].remove(CGBeadAtomDistances[NatomsInBead])
+                        AllCGBead_AtomIndexes[CGbead_index1].append(CGBeadAtomDistances[NatomsInBead])
+                        
+                        NatomsInBead += 1
+
+                        
+
+    print("Number of beads with less atoms than the threshold value:", smallBeads)
+    print("Number of performed fixes:", Nfixes)
     # Check the number of atoms in the AllCGBead_AtomIndexes list
     Natoms = 0
     for CGbead in AllCGBead_AtomIndexes:
@@ -108,6 +123,40 @@ def CGBeadMappingMain(atoms, CGbeads, spacings):
     assert Natoms == len(atoms), "Number of atoms do not match!"
 
     return AllCGBead_AtomIndexes
+
+
+# Function that determines whether the two CG beads are neighbors
+
+def isNeighbor(CGbead1, CGbead2, spacings):
+
+    Neighbor = True
+
+    # Set coordinate tolerance value for comparing floats
+    tol = 1e-5
+
+    assert len(CGbead1) == len(CGbead2) == len(spacings) == 3, "CG bead and spacings vector sizes do not match."
+
+    distanceVector = np.abs(np.subtract(CGbead2, CGbead1))
+
+    equality = 0
+
+    for i in range(len(distanceVector)):
+        if np.abs(distanceVector[i]) < tol:
+            equality += 1
+
+    #assert equality < 3, "The two CG beads are the same!"
+
+    if equality == 3:
+        Neighbor = False
+
+    for i in range(len(distanceVector)):
+        if (distanceVector[i] - spacings[i]) > tol:
+            Neighbor = False
+
+    return Neighbor
+
+
+
 
 # Find CG beads that belong to the surface and first layers and bulk
 
