@@ -42,16 +42,17 @@ def CGBeadMappingMain(atoms, CGbeads, spacings):
     checkAssignedAtoms(AllCGBead_AtomIndexes, atoms, spacings, AllDistances, closestCGBeads)
   
     # Fix the atom distribution
-    fixAtomDistribution(6, AllCGBead_AtomIndexes, AllDistances, CGbeads)
-    fixAtomDistribution(5, AllCGBead_AtomIndexes, AllDistances, CGbeads)
-    fixAtomDistribution(4, AllCGBead_AtomIndexes, AllDistances, CGbeads)
+    numIterations = 10
+    for i in range(numIterations):
+        fixAtomDistribution(5, AllCGBead_AtomIndexes, AllDistances, CGbeads, spacings)
+    
 
     # Check the assignements again after the fixing
     checkAssignedAtoms(AllCGBead_AtomIndexes, atoms, spacings, AllDistances, closestCGBeads)
     
     return AllCGBead_AtomIndexes
 
-def fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, AllDistances, CGbeads):
+def fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, AllDistances, CGbeads, spacings):
     # Fixing the atom distribution
     print("Fixing atom distribution...")
     
@@ -72,7 +73,7 @@ def fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, AllDistances, CGb
 
                 for CGbead_index2 in range(len(AllCGBead_AtomIndexes)):
                     if (#isNeighbor(CGbeads[CGbead_index1], CGbeads[CGbead_index2], spacings) and#
-                        #NatomsInBead < len(AllCGBead_AtomIndexes[CGbead_index2]) and #
+                        NatomsInBead < len(AllCGBead_AtomIndexes[CGbead_index2]) and 
                         CGBeadAtomDistances[NatomsInBead] in AllCGBead_AtomIndexes[CGbead_index2]):
 
                         Nfixes += 1
@@ -84,9 +85,9 @@ def fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, AllDistances, CGb
                         AllCGBead_AtomIndexes[CGbead_index1].append(CGBeadAtomDistances[NatomsInBead])
                         
                         NatomsInBead += 1
-                """
+                
                     elif (#isNeighbor(CGbeads[CGbead_index1], CGbeads[CGbead_index2], spacings) and#
-                        #NatomsInBead < len(AllCGBead_AtomIndexes[CGbead_index2]) and#
+                        NatomsInBead < len(AllCGBead_AtomIndexes[CGbead_index2]) and
                         CGBeadAtomDistances[NatomsInBead + 1] in AllCGBead_AtomIndexes[CGbead_index2]):
 
                         Nfixes += 1
@@ -100,7 +101,7 @@ def fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, AllDistances, CGb
                         NatomsInBead += 1
                 
                     elif (#isNeighbor(CGbeads[CGbead_index1], CGbeads[CGbead_index2], spacings) and#
-                        #NatomsInBead < len(AllCGBead_AtomIndexes[CGbead_index2]) and#
+                        NatomsInBead < len(AllCGBead_AtomIndexes[CGbead_index2]) and
                         CGBeadAtomDistances[NatomsInBead + 2] in AllCGBead_AtomIndexes[CGbead_index2]):
 
                         Nfixes += 1
@@ -114,7 +115,7 @@ def fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, AllDistances, CGb
                         NatomsInBead += 1
                 
                     elif (#isNeighbor(CGbeads[CGbead_index1], CGbeads[CGbead_index2], spacings) and#
-                        #NatomsInBead < len(AllCGBead_AtomIndexes[CGbead_index2]) and #
+                        NatomsInBead < len(AllCGBead_AtomIndexes[CGbead_index2]) and 
                         CGBeadAtomDistances[NatomsInBead + 3] in AllCGBead_AtomIndexes[CGbead_index2]):
 
                         Nfixes += 1
@@ -126,9 +127,9 @@ def fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, AllDistances, CGb
                         AllCGBead_AtomIndexes[CGbead_index1].append(CGBeadAtomDistances[NatomsInBead + 3])
                         
                         NatomsInBead += 1
-
+                
                     elif (#isNeighbor(CGbeads[CGbead_index1], CGbeads[CGbead_index2], spacings) and#
-                        #NatomsInBead < len(AllCGBead_AtomIndexes[CGbead_index2]) and#
+                        NatomsInBead < len(AllCGBead_AtomIndexes[CGbead_index2]) and
                         CGBeadAtomDistances[NatomsInBead + 4] in AllCGBead_AtomIndexes[CGbead_index2]):
 
                         Nfixes += 1
@@ -140,9 +141,9 @@ def fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, AllDistances, CGb
                         AllCGBead_AtomIndexes[CGbead_index1].append(CGBeadAtomDistances[NatomsInBead + 4])
                         
                         NatomsInBead += 1
-
+                
                     elif (#isNeighbor(CGbeads[CGbead_index1], CGbeads[CGbead_index2], spacings) and#
-                        #NatomsInBead < len(AllCGBead_AtomIndexes[CGbead_index2]) and#
+                        NatomsInBead < len(AllCGBead_AtomIndexes[CGbead_index2]) and
                         CGBeadAtomDistances[NatomsInBead + 5] in AllCGBead_AtomIndexes[CGbead_index2]):
 
                         Nfixes += 1
@@ -154,9 +155,9 @@ def fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, AllDistances, CGb
                         AllCGBead_AtomIndexes[CGbead_index1].append(CGBeadAtomDistances[NatomsInBead + 5])
                         
                         NatomsInBead += 1
-
+                
                     elif (#isNeighbor(CGbeads[CGbead_index1], CGbeads[CGbead_index2], spacings) and#
-                       # NatomsInBead < len(AllCGBead_AtomIndexes[CGbead_index2]) and#
+                        NatomsInBead < len(AllCGBead_AtomIndexes[CGbead_index2]) and
                         CGBeadAtomDistances[NatomsInBead + 6] in AllCGBead_AtomIndexes[CGbead_index2]):
 
                         Nfixes += 1
@@ -168,7 +169,7 @@ def fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, AllDistances, CGb
                         AllCGBead_AtomIndexes[CGbead_index1].append(CGBeadAtomDistances[NatomsInBead + 6])
                         
                         NatomsInBead += 1
-                """
+                
                         
 
     print("Number of beads with less atoms than the threshold value:", smallBeads)
