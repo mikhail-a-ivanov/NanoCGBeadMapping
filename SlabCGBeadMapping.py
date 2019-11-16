@@ -16,7 +16,7 @@ CGbeadHistogram(AllCGBead_AtomIndexes, "All atoms", 100)
 CGbeadHistogram(CGbeads_Surface, "Surface atoms", 100)
 CGbeadHistogram(CGbeads_FirstLayer, "First layer atoms", 100)
 
-print('Bead mapping took',round(end - start, 4), ' seconds.')
+print('\nBead mapping took',round(end - start, 4), ' seconds.')
 
 
 
