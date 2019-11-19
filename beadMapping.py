@@ -36,6 +36,9 @@ def CGBeadMappingMain(atoms, CGbeads, spacings):
 
     # Remove unnecessary objects
     del(AllDistancesSorted)
+
+    # Get the lists of every CG bead's closest atoms
+    CGBeadAtomDistances = np.argsort(AllDistances.T, axis=1)
     
     # Check that the number of atoms and CG beads match
     assert len(closestCGBeads) == len(atoms), "Number of atoms do not match!"
@@ -52,11 +55,14 @@ def CGBeadMappingMain(atoms, CGbeads, spacings):
     print("Fixing atom distribution...")
     atomsThreshold = len(atoms) // len(CGbeads)
     print("Setting number of atoms per CG bead threshold to", atomsThreshold)
+
     numIterations = 15
     for i in range(numIterations):
         print("\nFixing iteration number", i + 1, "...")
-        fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, AllDistances, CGbeads, spacings)
+        AllCGBead_AtomIndexes = fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, CGBeadAtomDistances, CGbeads, spacings)
     
+    # Remove unnecessary objects
+    del(CGBeadAtomDistances)
 
     # Check the assignements again after the fixing
     checkAssignedAtoms(AllCGBead_AtomIndexes, atoms, spacings, AllDistances, closestCGBeads)
@@ -66,51 +72,66 @@ def CGBeadMappingMain(atoms, CGbeads, spacings):
 # Main atom distribution fixing function. It tries to make the distribution more even, by assigning
 # closest atoms from the beads that have more than the average number of atoms per bead to the next closest beads that have less atoms.
 
-def fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, AllDistances, CGbeads, spacings):
+def fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, CGBeadAtomDistances, CGbeads, spacings):
     # Setting the counters
-    smallBeads = 0
+    #smallBeads = 0
     Nfixes = 0
 
     # This parameter determines the maximum allowed order of proximity between the CG bead and the assigned atoms.
     # What it means is that it allowes a CG bead to have up to (maxNeighborOrder + 1) closest atom assigned to the CG bead in case
     # it has too few atoms (less than average number of atoms per CG bead). It appears that high order is needed (around 6-7) to achieve 
     # more or less equal distribution of atoms between the CG beads (at least in the case of anatase) 
-    maxNeighborOrder = 7 
+    maxNeighborOrder = 7
 
     for CGbead_index1 in range(len(AllCGBead_AtomIndexes)):
         NatomsInBead = len(AllCGBead_AtomIndexes[CGbead_index1])
+        """
+        counter = 0
+        while NatomsInBead < atomsThreshold:
+            counter += 1
 
-        if NatomsInBead < atomsThreshold:
-            CGBeadAtomDistances = np.argsort(AllDistances.T[CGbead_index1])
-            smallBeads += 1
+            if counter >= atomsThreshold:
+                break
 
-            counter = 0
-            while NatomsInBead < atomsThreshold:
-                counter += 1
+            for CGbead_index2 in range(len(AllCGBead_AtomIndexes)):
+                for orderIndex in range(maxNeighborOrder + 1):
+                    if (#isNeighbor(CGbeads[CGbead_index1], CGbeads[CGbead_index2], spacings) and#
+                        NatomsInBead < len(AllCGBead_AtomIndexes[CGbead_index2]) and 
+                        CGBeadAtomDistances[CGbead_index1][NatomsInBead + orderIndex] in AllCGBead_AtomIndexes[CGbead_index2]):
 
-                if counter > 10:
-                    break
+                        Nfixes += 1
 
-                for CGbead_index2 in range(len(AllCGBead_AtomIndexes)):
-                    
-                    for orderIndex in range(maxNeighborOrder + 1):
-                        if (#isNeighbor(CGbeads[CGbead_index1], CGbeads[CGbead_index2], spacings) and#
-                            NatomsInBead < len(AllCGBead_AtomIndexes[CGbead_index2]) and 
-                            CGBeadAtomDistances[NatomsInBead + orderIndex] in AllCGBead_AtomIndexes[CGbead_index2]):
+                        #print("Picking CG bead", CGbead_index2, ":", AllCGBead_AtomIndexes[CGbead_index2])
+                        #print("Removing atom", CGBeadAtomDistances[NatomsInBead])
 
-                            Nfixes += 1
-
-                            #print("Picking CG bead", CGbead_index2, ":", AllCGBead_AtomIndexes[CGbead_index2])
-                            #print("Removing atom", CGBeadAtomDistances[NatomsInBead])
-
-                            AllCGBead_AtomIndexes[CGbead_index2].remove(CGBeadAtomDistances[NatomsInBead + orderIndex])
-                            AllCGBead_AtomIndexes[CGbead_index1].append(CGBeadAtomDistances[NatomsInBead + orderIndex])
+                        AllCGBead_AtomIndexes[CGbead_index2].remove(CGBeadAtomDistances[CGbead_index1][NatomsInBead + orderIndex])
+                        AllCGBead_AtomIndexes[CGbead_index1].append(CGBeadAtomDistances[CGbead_index1][NatomsInBead + orderIndex])
                         
-                            NatomsInBead += 1
-                            break
+                        NatomsInBead += 1
+                        break
+        """
+        counter = 0
+        while NatomsInBead > atomsThreshold:
+            counter += 1
+
+            if counter >= atomsThreshold:
+                break
+
+            for CGbead_index2 in range(len(AllCGBead_AtomIndexes)):
+                if (NatomsInBead > len(AllCGBead_AtomIndexes[CGbead_index2]) and 
+                    CGBeadAtomDistances[CGbead_index2][NatomsInBead] in AllCGBead_AtomIndexes[CGbead_index1]):
+                    
+                    Nfixes += 1
+
+                    AllCGBead_AtomIndexes[CGbead_index1].remove(CGBeadAtomDistances[CGbead_index2][NatomsInBead])
+                    AllCGBead_AtomIndexes[CGbead_index2].append(CGBeadAtomDistances[CGbead_index2][NatomsInBead])
+                        
+                    NatomsInBead -= 1
+
+
                                                           
-    print("\nNumber of beads with less atoms than the threshold value:", smallBeads)
-    print("Number of performed fixes:", Nfixes)
+    #print("\nNumber of beads with less atoms than the threshold value:", smallBeads)
+    print("Number of performed reassignments:", Nfixes)
 
     return AllCGBead_AtomIndexes
 
