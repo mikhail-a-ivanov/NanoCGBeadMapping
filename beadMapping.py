@@ -56,7 +56,7 @@ def CGBeadMappingMain(atoms, CGbeads, spacings):
     atomsThreshold = len(atoms) // len(CGbeads)
     print("Setting number of atoms per CG bead threshold to", atomsThreshold)
 
-    numIterations = 15
+    numIterations = 20
     for i in range(numIterations):
         print("\nFixing iteration number", i + 1, "...")
         AllCGBead_AtomIndexes = fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, CGBeadAtomDistances, CGbeads, spacings)
@@ -75,17 +75,18 @@ def CGBeadMappingMain(atoms, CGbeads, spacings):
 def fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, CGBeadAtomDistances, CGbeads, spacings):
     # Setting the counters
     #smallBeads = 0
+
     Nfixes = 0
 
     # This parameter determines the maximum allowed order of proximity between the CG bead and the assigned atoms.
     # What it means is that it allowes a CG bead to have up to (maxNeighborOrder + 1) closest atom assigned to the CG bead in case
     # it has too few atoms (less than average number of atoms per CG bead). It appears that high order is needed (around 6-7) to achieve 
     # more or less equal distribution of atoms between the CG beads (at least in the case of anatase) 
-    maxNeighborOrder = 7
+    maxNeighborOrder = 5
 
     for CGbead_index1 in range(len(AllCGBead_AtomIndexes)):
         NatomsInBead = len(AllCGBead_AtomIndexes[CGbead_index1])
-        """
+        
         counter = 0
         while NatomsInBead < atomsThreshold:
             counter += 1
@@ -109,7 +110,7 @@ def fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, CGBeadAtomDistanc
                         
                         NatomsInBead += 1
                         break
-        """
+        
         counter = 0
         while NatomsInBead > atomsThreshold:
             counter += 1
@@ -118,16 +119,19 @@ def fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, CGBeadAtomDistanc
                 break
 
             for CGbead_index2 in range(len(AllCGBead_AtomIndexes)):
-                if (NatomsInBead > len(AllCGBead_AtomIndexes[CGbead_index2]) and 
-                    CGBeadAtomDistances[CGbead_index2][NatomsInBead] in AllCGBead_AtomIndexes[CGbead_index1]):
+                for orderIndex in range(maxNeighborOrder + 1):
+                    if (NatomsInBead > len(AllCGBead_AtomIndexes[CGbead_index2]) and 
+                        CGBeadAtomDistances[CGbead_index2][NatomsInBead + orderIndex] in AllCGBead_AtomIndexes[CGbead_index1]):
                     
-                    Nfixes += 1
+                        Nfixes += 1
 
-                    AllCGBead_AtomIndexes[CGbead_index1].remove(CGBeadAtomDistances[CGbead_index2][NatomsInBead])
-                    AllCGBead_AtomIndexes[CGbead_index2].append(CGBeadAtomDistances[CGbead_index2][NatomsInBead])
+                        AllCGBead_AtomIndexes[CGbead_index1].remove(CGBeadAtomDistances[CGbead_index2][NatomsInBead + orderIndex])
+                        AllCGBead_AtomIndexes[CGbead_index2].append(CGBeadAtomDistances[CGbead_index2][NatomsInBead + orderIndex])
                         
-                    NatomsInBead -= 1
-
+                        NatomsInBead -= 1
+                        break
+        """
+        """
 
                                                           
     #print("\nNumber of beads with less atoms than the threshold value:", smallBeads)
@@ -228,7 +232,7 @@ def FindSlabLayers(CGbeads, AllCGBead_AtomIndexes):
     # Surface CG beads have either minimum or maximum values of Z-coordinate 
     surface_z = [values_z[0], values_z[len(values_z)-1]]
     # First subsurface CG beads have next minimum or next maximum values of Z-coordinate
-    first_layer_z = [values_z[1], values_z[len(values_z)-2]]
+    #first_layer_z = [values_z[1], values_z[len(values_z)-2]]
 
     # Set coordinate tolerance value for comparing floats
     tol = 1e-5
@@ -243,6 +247,7 @@ def FindSlabLayers(CGbeads, AllCGBead_AtomIndexes):
 
     CGbeads_surface_indexes = np.array(CGbeads_surface_indexes)
 
+    """
     # Construct an array of first subsurface CG beads indexes
     CGbeads_first_layer_indexes = []
     for CGbead_index in range(len(CGbeads)):
@@ -252,12 +257,13 @@ def FindSlabLayers(CGbeads, AllCGBead_AtomIndexes):
             CGbeads_first_layer_indexes.append(CGbead_index)
             
     CGbeads_first_layer_indexes = np.array(CGbeads_first_layer_indexes)
-            
+    """        
+
     # Construct arrays of surface and first subsurface from the main array
     CGbeads_Surface = np.take(AllCGBead_AtomIndexes, CGbeads_surface_indexes)
-    CGbeads_FirstLayer = np.take(AllCGBead_AtomIndexes, CGbeads_first_layer_indexes)
+    #CGbeads_FirstLayer = np.take(AllCGBead_AtomIndexes, CGbeads_first_layer_indexes)
     
-    return CGbeads_Surface, CGbeads_FirstLayer
+    return CGbeads_Surface#, CGbeads_FirstLayer
 
 
 def CGbeadHistogram(AllCGbead_AtomIndexes, label, Nbins):
@@ -272,6 +278,29 @@ def CGbeadHistogram(AllCGbead_AtomIndexes, label, Nbins):
     plt.grid(b=True, which='major' , linestyle='--', color= 'grey', linewidth=1, zorder=1)
     plt.grid(b=True, which='minor', linestyle='--', color= 'grey', linewidth=1, zorder=1)
     plt.hist(atoms_in_CGbead, bins = Nbins)
-    plt.show()
+    plt.savefig(label, dpi=300)
+    #plt.show()
     
-    return 
+    return
+
+def WriteCGBeadMapping(filename, AllCGBead_AtomIndexes, beadName):
+    file = open(filename, 'w')
+    NzeroFill = int(np.log10(len(AllCGBead_AtomIndexes))) + 1
+
+    for CGbead_index in range(len(AllCGBead_AtomIndexes)):
+        NatomsInBead = len(AllCGBead_AtomIndexes[CGbead_index])
+        file.write('  ' + format(beadName) + str(CGbead_index + 1).zfill(NzeroFill) + ':' + format(NatomsInBead).rjust(6) + ': ')
+
+        atom_index = 0
+        for atom in AllCGBead_AtomIndexes[CGbead_index]:
+            atom_index += 1
+            if atom_index < NatomsInBead:
+                file.write(str(atom + 1) + ', ')
+            else:
+                file.write(str(atom + 1))
+
+        file.write('\n')
+
+    file.close()
+
+    
