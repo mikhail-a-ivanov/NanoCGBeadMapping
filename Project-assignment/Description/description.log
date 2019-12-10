@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2019.3.28)  10 DEC 2019 18:41
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2019.3.28)  10 DEC 2019 18:45
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -230,11 +230,11 @@ Package pdftex.def Info: anatase-101-SurfaceAtoms.png  used on input line 77.
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-<Project-overview.png, id=16, 2631.8325pt x 881.4531pt>
+<Project-overview.png, id=16, 2632.0734pt x 881.2122pt>
 File: Project-overview.png Graphic file (type png)
 <use Project-overview.png>
 Package pdftex.def Info: Project-overview.png  used on input line 88.
-(pdftex.def)             Requested size: 412.56496pt x 138.17055pt.
+(pdftex.def)             Requested size: 412.56496pt x 138.11934pt.
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
@@ -257,7 +257,7 @@ msfonts/cm/cmr17.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts
 /cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti
 10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb
 >
-Output written on description.pdf (4 pages, 22458828 bytes).
+Output written on description.pdf (4 pages, 6159418 bytes).
 PDF statistics:
  56 PDF objects out of 1000 (max. 8388607)
  35 compressed objects within 1 object stream
