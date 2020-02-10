@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def CGBeadMappingMain(atoms, CGbeads, spacings):
+def CGBeadMappingMain(atoms, CGbeads, spacings, numIterations, maxNeighborOrder):
     # Creating a list of atom indeces that are assigned to a certain CG bead
     AllCGBead_AtomIndexes = []
     for i in range(len(CGbeads)):
@@ -56,10 +56,10 @@ def CGBeadMappingMain(atoms, CGbeads, spacings):
     atomsThreshold = len(atoms) // len(CGbeads)
     print("Setting number of atoms per CG bead threshold to", atomsThreshold)
 
-    numIterations = 20
+    #numIterations = 5
     for i in range(numIterations):
         print("\nFixing iteration number", i + 1, "...")
-        AllCGBead_AtomIndexes = fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, CGBeadAtomDistances, CGbeads, spacings)
+        AllCGBead_AtomIndexes = fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, CGBeadAtomDistances, CGbeads, spacings, maxNeighborOrder)
     
     # Remove unnecessary objects
     del(CGBeadAtomDistances)
@@ -72,7 +72,7 @@ def CGBeadMappingMain(atoms, CGbeads, spacings):
 # Main atom distribution fixing function. It tries to make the distribution more even, by assigning
 # closest atoms from the beads that have more than the average number of atoms per bead to the next closest beads that have less atoms.
 
-def fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, CGBeadAtomDistances, CGbeads, spacings):
+def fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, CGBeadAtomDistances, CGbeads, spacings, maxNeighborOrder):
     # Setting the counters
     #smallBeads = 0
 
@@ -82,53 +82,57 @@ def fixAtomDistribution(atomsThreshold, AllCGBead_AtomIndexes, CGBeadAtomDistanc
     # What it means is that it allowes a CG bead to have up to (maxNeighborOrder + 1) closest atom assigned to the CG bead in case
     # it has too few atoms (less than average number of atoms per CG bead). It appears that high order is needed (around 6-7) to achieve 
     # more or less equal distribution of atoms between the CG beads (at least in the case of anatase) 
-    maxNeighborOrder = 5
+    #maxNeighborOrder = 1
 
     for CGbead_index1 in range(len(AllCGBead_AtomIndexes)):
-        NatomsInBead = len(AllCGBead_AtomIndexes[CGbead_index1])
+        NatomsInBead1 = len(AllCGBead_AtomIndexes[CGbead_index1])
         
         counter = 0
-        while NatomsInBead < atomsThreshold:
+        while NatomsInBead1 < atomsThreshold:
             counter += 1
 
             if counter >= atomsThreshold:
                 break
 
             for CGbead_index2 in range(len(AllCGBead_AtomIndexes)):
+                NatomsInBead2 = len(AllCGBead_AtomIndexes[CGbead_index2])
+
                 for orderIndex in range(maxNeighborOrder + 1):
                     if (#isNeighbor(CGbeads[CGbead_index1], CGbeads[CGbead_index2], spacings) and#
-                        NatomsInBead < len(AllCGBead_AtomIndexes[CGbead_index2]) and 
-                        CGBeadAtomDistances[CGbead_index1][NatomsInBead + orderIndex] in AllCGBead_AtomIndexes[CGbead_index2]):
+                        NatomsInBead1 < NatomsInBead2 and 
+                        CGBeadAtomDistances[CGbead_index1][NatomsInBead1 + orderIndex] in AllCGBead_AtomIndexes[CGbead_index2]):
 
                         Nfixes += 1
 
                         #print("Picking CG bead", CGbead_index2, ":", AllCGBead_AtomIndexes[CGbead_index2])
                         #print("Removing atom", CGBeadAtomDistances[NatomsInBead])
 
-                        AllCGBead_AtomIndexes[CGbead_index2].remove(CGBeadAtomDistances[CGbead_index1][NatomsInBead + orderIndex])
-                        AllCGBead_AtomIndexes[CGbead_index1].append(CGBeadAtomDistances[CGbead_index1][NatomsInBead + orderIndex])
+                        AllCGBead_AtomIndexes[CGbead_index2].remove(CGBeadAtomDistances[CGbead_index1][NatomsInBead1 + orderIndex])
+                        AllCGBead_AtomIndexes[CGbead_index1].append(CGBeadAtomDistances[CGbead_index1][NatomsInBead1 + orderIndex])
                         
-                        NatomsInBead += 1
+                        NatomsInBead1 += 1
                         break
         
         counter = 0
-        while NatomsInBead > atomsThreshold:
+        while NatomsInBead1 > atomsThreshold:
             counter += 1
 
             if counter >= atomsThreshold:
                 break
 
             for CGbead_index2 in range(len(AllCGBead_AtomIndexes)):
+                NatomsInBead2 = len(AllCGBead_AtomIndexes[CGbead_index2])
+
                 for orderIndex in range(maxNeighborOrder + 1):
-                    if (NatomsInBead > len(AllCGBead_AtomIndexes[CGbead_index2]) and 
-                        CGBeadAtomDistances[CGbead_index2][NatomsInBead + orderIndex] in AllCGBead_AtomIndexes[CGbead_index1]):
+                    if (NatomsInBead1 > NatomsInBead2 and 
+                        CGBeadAtomDistances[CGbead_index2][NatomsInBead1 + orderIndex] in AllCGBead_AtomIndexes[CGbead_index1]):
                     
                         Nfixes += 1
 
-                        AllCGBead_AtomIndexes[CGbead_index1].remove(CGBeadAtomDistances[CGbead_index2][NatomsInBead + orderIndex])
-                        AllCGBead_AtomIndexes[CGbead_index2].append(CGBeadAtomDistances[CGbead_index2][NatomsInBead + orderIndex])
+                        AllCGBead_AtomIndexes[CGbead_index1].remove(CGBeadAtomDistances[CGbead_index2][NatomsInBead1 + orderIndex])
+                        AllCGBead_AtomIndexes[CGbead_index2].append(CGBeadAtomDistances[CGbead_index2][NatomsInBead1 + orderIndex])
                         
-                        NatomsInBead -= 1
+                        NatomsInBead1 -= 1
                         break
         """
         """
