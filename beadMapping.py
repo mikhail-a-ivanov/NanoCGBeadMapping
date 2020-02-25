@@ -236,7 +236,7 @@ def FindSlabLayers(CGbeads, AllCGBead_AtomIndexes):
     # Surface CG beads have either minimum or maximum values of Z-coordinate 
     surface_z = [values_z[0], values_z[len(values_z)-1]]
     # First subsurface CG beads have next minimum or next maximum values of Z-coordinate
-    #first_layer_z = [values_z[1], values_z[len(values_z)-2]]
+    first_layer_z = [values_z[1], values_z[len(values_z)-2]]
 
     # Set coordinate tolerance value for comparing floats
     tol = 1e-5
@@ -251,7 +251,7 @@ def FindSlabLayers(CGbeads, AllCGBead_AtomIndexes):
 
     CGbeads_surface_indexes = np.array(CGbeads_surface_indexes)
 
-    """
+    
     # Construct an array of first subsurface CG beads indexes
     CGbeads_first_layer_indexes = []
     for CGbead_index in range(len(CGbeads)):
@@ -261,13 +261,13 @@ def FindSlabLayers(CGbeads, AllCGBead_AtomIndexes):
             CGbeads_first_layer_indexes.append(CGbead_index)
             
     CGbeads_first_layer_indexes = np.array(CGbeads_first_layer_indexes)
-    """        
+           
 
     # Construct arrays of surface and first subsurface from the main array
     CGbeads_Surface = np.take(AllCGBead_AtomIndexes, CGbeads_surface_indexes)
-    #CGbeads_FirstLayer = np.take(AllCGBead_AtomIndexes, CGbeads_first_layer_indexes)
+    CGbeads_FirstLayer = np.take(AllCGBead_AtomIndexes, CGbeads_first_layer_indexes)
     
-    return CGbeads_Surface#, CGbeads_FirstLayer
+    return CGbeads_Surface, CGbeads_FirstLayer
 
 
 def CGbeadHistogram(AllCGbead_AtomIndexes, label, Nbins):
