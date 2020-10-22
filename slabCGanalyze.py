@@ -60,9 +60,12 @@ def beadCoordinates(lines, beadType):
 
 
 def averageMaxSeparation(beadCoordinates, axis=2):
-    
+    # Calculate the mean coordinate along one axis
     meanCoordinate = np.mean(beadCoordinates, axis=0)[axis]
 
+    # Divide bead coordinates into two groups:
+    # 1. coordinate < mean coordinate
+    # 2. coordinate > mean coordinate
     minCoordinates = beadCoordinates[beadCoordinates.T[axis] < meanCoordinate]
     maxCoordinates = beadCoordinates[beadCoordinates.T[axis] > meanCoordinate]
 
