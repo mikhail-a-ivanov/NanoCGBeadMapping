@@ -38,7 +38,7 @@ def beadCoordinates(lines, beadType):
 
     assert len(beadCoordinates.T) == 3, 'Could not read X, Y or Z bead coordinates!'
 
-    return beadType, beadCoordinates
+    return beadCoordinates
 
 
 def getBeadSeparation(beadCoordinates, axis=2):
@@ -99,7 +99,8 @@ def getBeadsPerArea(beadCoordinates, box, axis=2):
 
     assert len(dimensions) == 2, 'Could not select the plane!'
 
-    beadsPerArea = len(beadCoordinates) / (box[dimensions[0]] * box[dimensions[1]])
+    # Beads per area per plane
+    beadsPerArea = len(beadCoordinates) / (box[dimensions[0]] * box[dimensions[1]]) / 2
 
     return beadsPerArea
 
@@ -111,8 +112,8 @@ def getBeadsPerArea(beadCoordinates, box, axis=2):
 CGslabFile, NBeads, box = readCGSlab('anatase-101/last_frame.xmol')
 print(box)
 
-beadType1, coordinates1 = beadCoordinates(CGslabFile, 'TiA')
-beadType2, coordinates2 = beadCoordinates(CGslabFile, 'TiB')
+coordinates1 = beadCoordinates(CGslabFile, 'TiA')
+coordinates2 = beadCoordinates(CGslabFile, 'TiB')
 
 width_TiA = getBeadSeparation(coordinates1, axis=2)
 print(width_TiA)
