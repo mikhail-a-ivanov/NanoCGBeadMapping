@@ -151,29 +151,26 @@ def buildCGSlab(beadType1='TiA', beadType2='TiB', latticePoints=32, width=3, ori
     separation = getBeadTypeSeparation(coordinates1, coordinates2)
 
     # Calculate beads per area
-    beadsPerArea1 = getBeadsPerArea(coordinates1, box, axis=2)
-    beadsPerArea2 = getBeadsPerArea(coordinates2, box, axis=2)
+    beadsPerArea = getBeadsPerArea(coordinates1, box, axis=2)
 
-    # Calculate the slab length
-    slabLength1 = np.sqrt(latticePoints ** 2 / beadsPerArea1) # nm
-    slabLength2 = np.sqrt(latticePoints ** 2 / beadsPerArea2) # nm    
+    # Calculate the slab length and bead spacing
+    slabLength = np.sqrt(latticePoints ** 2 / beadsPerArea) # nm
+
+    beadSpacing = slabLength / latticePoints # nm     
 
     # Initialize a grid
-    xLower, yLower, zLower = np.meshgrid(range(latticePoints), range(latticePoints), range(2))
-    gridLower = np.array([xLower, yLower, zLower]).T.reshape(2 * latticePoints**2, 3)
+    xx, yy, zz = np.meshgrid(range(latticePoints), range(latticePoints), range(2))
+    grid = np.array([xx, yy, zz]).T.reshape(2 * latticePoints**2, 3)
 
-    planeLower = np.array([gridLower.T[0], gridLower.T[1], gridLower.T[2] * separation]).T
+    # Initialize slab planes coordinates and join them in one array
+    planeLower = np.array([grid.T[0] * beadSpacing, grid.T[1] * beadSpacing, grid.T[2] * separation]).T
+    planeUpper = np.array([grid.T[0] * beadSpacing, grid.T[1] * beadSpacing, (grid.T[2] * separation) + width]).T
 
+    slab = np.concatenate((planeLower, planeUpper))
 
+    assert slab.shape == (4 * latticePoints**2, 3), 'Number of beads does not match the input values!'
 
-    xUpper, yUpper, zUpper = np.meshgrid(range(latticePoints), range(latticePoints), range(2))
-    gridUpper = np.array([xUpper, yUpper, zUpper]).T.reshape(2 * latticePoints**2, 3)
-
-    planeUpper = np.array([gridUpper.T[0], gridUpper.T[1], (gridUpper.T[2] * separation) + width]).T
-    
-    
-
-    return
+    return slab
 
 
 
@@ -200,3 +197,7 @@ print(beadsPerArea1)
 
 beadsPerArea2 = getBeadsPerArea(coordinates2, box, axis=2)
 print(beadsPerArea2)
+
+slab = buildCGSlab(beadType1='TiA', beadType2='TiB', latticePoints=32, width=3, originalSlabGeometry='anatase-101/last_frame.xmol')
+print(slab)
+print(slab.shape)
