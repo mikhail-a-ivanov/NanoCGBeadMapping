@@ -1,68 +1,6 @@
 import numpy as np
 from slabCGanalyze import beadCoordinates, getBeadSeparation, getBeadTypeSeparation, getBeadsPerArea
 
-A_to_nm = 0.1
-
-def readCGSlab(conf_file, header_rows = 2):
-    """
-    Opens and reads input configuration file with the 
-    CG slab geometry, returns list of lines
-    with bead coordinates and the box vectors (nm)
-    """
-    lines = []
-    try:
-        with open(conf_file, 'r') as file:
-            for row in file:
-                lines.append(row.split())
-    except IOError:
-        print(f'Could not read the file {conf_file}!')
-
-    # Save the total number of beads
-    try:
-        NBeads = int(lines[0][0])
-    except:
-        print('Could not read the number of beads!')
-
-    # Save the box vectors
-    try:
-        box = [float(lines[1][3]) * A_to_nm, float(lines[1][4]) * A_to_nm, float(lines[1][5]) * A_to_nm]
-    except:
-        print('Could not read the box vectors!') 
-
-    # Remove header
-    assert len(lines) != 0, 'Could not read bead coordinates!'
-
-    del(lines[0:header_rows])
-
-    assert len(lines) == NBeads, 'Number of lines in the file does not match the total number of beads!'
-
-    return lines, box
-
-
-def buildCGSlab(beadType1='TiA', beadType2='TiB', slabLenght=32, width=3, originalSlabGeometry='anatase-101/last_frame.xmol'):
-
-    # Read the configuration of the original slab
-    CGslabFile, box = readCGSlab(originalSlabGeometry)
-
-    # Read the coordinates
-    coordinates1 = beadCoordinates(CGslabFile, beadType1)
-    coordinates2 = beadCoordinates(CGslabFile, beadType2)
-
-    # Calculate separation between two bead types
-    separation = getBeadTypeSeparation(coordinates1, coordinates2)
-
-    # Calculate beads per area
-    beadsPerArea1 = getBeadsPerArea(coordinates1, box, axis=2)
-    beadsPerArea2 = getBeadsPerArea(coordinates2, box, axis=2)
-
-    
-
-
-
-
-    return
-
-
 def writeCGSlabGRO(CGbeads, filename, resname, atomname):
     CGbeads = np.around(CGbeads, decimals=3)
     
