@@ -1,34 +1,4 @@
 import numpy as np
-from slabCGanalyze import beadCoordinates, getBeadSeparation, getBeadTypeSeparation, getBeadsPerArea
-
-def writeCGSlabGRO(CGbeads, filename, resname, atomname):
-    CGbeads = np.around(CGbeads, decimals=3)
-    
-    with open(filename, 'r') as file:
-        lines = file.read().splitlines()
-        pbc = lines[-1].split()
-    
-    
-    filename = resname + "_" + str(len(CGbeads)) + "CGbeads.gro"
-    file_header = "resname: " + resname + "; " + str(len(CGbeads))+ " " + "CG beads" + "\n" + str(len(CGbeads))
-    
-    gro_file = open(filename, 'w+')
-    gro_file.write(file_header + '\n')
-    
-    for CGbead_index in range(len(CGbeads)):
-        gro_file.write(format(resname).rjust(9))
-        gro_file.write(format(atomname + str(CGbead_index+1)).rjust(6))
-        gro_file.write(format(str(CGbead_index+1)).rjust(5))
-        for axis_index in range(len(CGbeads[CGbead_index])):
-            gro_file.write(format(CGbeads[CGbead_index][axis_index], '#.3f').rjust(8))
-        gro_file.write("\n")
-    
-    for axis_index in range(len(pbc)):
-        gro_file.write(format(float(pbc[axis_index]), '#.5f').rjust(10))
-    gro_file.write("\n")
-    gro_file.close()
-    print(filename, "saved.")
-    return
 
 # This function reads the gro file, looks for all the strings with that contain the name of the slab residue
 # and save the data to the output in the format: ['Atom name and atom number', 'atom number', 'X', 'Y', 'Z']
