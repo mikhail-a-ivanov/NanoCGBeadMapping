@@ -1,6 +1,5 @@
 import numpy as np
 from timeit import default_timer as timer
-from IO import writeGRO
 from slabInit import Initialize
 from beadMapping import CGBeadMappingMain, FindSlabLayers, CGbeadHistogram, WriteCGBeadMapping
 
