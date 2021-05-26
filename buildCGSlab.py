@@ -138,7 +138,9 @@ def getBeadsPerArea(beadCoordinates, box, axis=2):
 
     return beadsPerArea
 
-def getCGSlabCoordinates(beadType1='TiA', beadType2='TiB', latticePoints=32, width=3, originalSlabGeometry='anatase-101/last_frame.xmol'):
+def getCGSlabCoordinates(beadType1='TiA', beadType2='TiB', latticePoints=32, width=3, originalSlabGeometry='last_frame.xmol'):
+    """Get the CG bead coordinates and the corresponding
+    PBC box vector"""
 
     # Read the configuration of the original slab
     CGslabFile, box = readCGSlab(originalSlabGeometry)
@@ -166,22 +168,54 @@ def getCGSlabCoordinates(beadType1='TiA', beadType2='TiB', latticePoints=32, wid
     planeLower = np.array([grid.T[0] * beadSpacing, grid.T[1] * beadSpacing, grid.T[2] * separation]).T
     planeUpper = np.array([grid.T[0] * beadSpacing, grid.T[1] * beadSpacing, (grid.T[2] * separation) + width]).T
 
+    # Generate list of atomnames
+    tol = 1e-5
+    atomnames = []
+    for Z in planeLower.T[2]:
+        if Z == 0:
+            atomnames.append(beadType1)
+        else:
+            atomnames.append(beadType2)
+
+    for Z in planeUpper.T[2]:
+        if Z == width:
+            atomnames.append(beadType2)
+        else:
+            atomnames.append(beadType1)
+
+    atom_indices = []
+    beadType1_counter = 0
+    beadType2_counter = 0
+    for atom in atomnames:
+        if atom == beadType1:
+            beadType1_counter += 1
+            atom_indices.append(beadType1_counter)
+        else:
+            beadType2_counter += 1
+            atom_indices.append(beadType2_counter)
+
+
+
     slab = np.concatenate((planeLower, planeUpper))
+    
+
+    # Write the PBC box vector
+    pbc_box = [np.amax(slab.T[0]) + beadSpacing, 
+               np.amax(slab.T[1]) + beadSpacing, 
+               np.amax(slab.T[2]) + 1] # add 1 nm of vacuum to Z and 1 * beadSpacing to X and Y
+                                       # so that the beads do not overlap
 
     assert slab.shape == (4 * latticePoints**2, 3), 'Number of beads does not match the input values!'
 
-    return slab
+    return slab, pbc_box, atomnames, atom_indices
 
 
-def writeCGSlabGRO(CGbeads, filename, resname, atomname):
+def writeCGSlabGRO(CGbeads, resname, atomnames, pbc_box):
     CGbeads = np.around(CGbeads, decimals=3)
+
+    assert len(atomnames) == len(CGbeads), 'List of atomnames and the coordinates are incompatible!'
     
-    with open(filename, 'r') as file:
-        lines = file.read().splitlines()
-        pbc = lines[-1].split()
-    
-    
-    filename = resname + "_" + str(len(CGbeads)) + ".gro"
+    filename = resname + "-" + str(len(CGbeads)) + ".gro"
     file_header = "resname: " + resname + "; " + str(len(CGbeads))+ " " + "CG beads" + "\n" + str(len(CGbeads))
     
     gro_file = open(filename, 'w+')
@@ -189,42 +223,22 @@ def writeCGSlabGRO(CGbeads, filename, resname, atomname):
     
     for CGbead_index in range(len(CGbeads)):
         gro_file.write(format(resname).rjust(9))
-        gro_file.write(format(atomname + str(CGbead_index+1)).rjust(6))
+        #gro_file.write(format(atomnames[CGbead_index] + str(atom_indices[CGbead_index])).rjust(6))
+        gro_file.write(format(atomnames[CGbead_index]).rjust(6))
         gro_file.write(format(str(CGbead_index+1)).rjust(5))
         for axis_index in range(len(CGbeads[CGbead_index])):
             gro_file.write(format(CGbeads[CGbead_index][axis_index], '#.3f').rjust(8))
         gro_file.write("\n")
     
-    for axis_index in range(len(pbc)):
-        gro_file.write(format(float(pbc[axis_index]), '#.5f').rjust(10))
+    for axis_index in range(len(pbc_box)):
+        gro_file.write(format(float(pbc_box[axis_index]), '#.5f').rjust(10))
     gro_file.write("\n")
     gro_file.close()
     print(filename, "saved.")
     return
 
 
+# Execute the script:
+slab, pbc_box, atomnames, atom_indices = getCGSlabCoordinates(beadType1='TiA', beadType2='TiB', latticePoints=32, width=3, originalSlabGeometry='anatase-101/last_frame.xmol')
 
-CGslabFile, box = readCGSlab('anatase-101/last_frame.xmol')
-print(box)
-
-coordinates1 = beadCoordinates(CGslabFile, 'TiA')
-coordinates2 = beadCoordinates(CGslabFile, 'TiB')
-
-width_TiA = getBeadSeparation(coordinates1, axis=2)
-print(width_TiA)
-
-width_TiB = getBeadSeparation(coordinates2, axis=2)
-print(width_TiB)
-
-separation = getBeadTypeSeparation(coordinates1, coordinates2)
-print(separation)
-
-beadsPerArea1 = getBeadsPerArea(coordinates1, box, axis=2)
-print(beadsPerArea1)
-
-beadsPerArea2 = getBeadsPerArea(coordinates2, box, axis=2)
-print(beadsPerArea2)
-
-slab = getCGSlabCoordinates(beadType1='TiA', beadType2='TiB', latticePoints=32, width=3, originalSlabGeometry='anatase-101/last_frame.xmol')
-print(slab)
-print(slab.shape)
+writeCGSlabGRO(slab, 'a101', atomnames, pbc_box)
