@@ -1,3 +1,5 @@
+import numpy as np
+
 def readXMOL(filename):
     """Reads xmol files"""
     xmol = []
@@ -17,19 +19,22 @@ def readMMOL(filename):
             mmol.append(line.split())
     return mmol
 
-def writeMCMfile(filename, xmol):
-    """Writes mcm files"""
+def writeMCMfileCGSlab(filename, xmol_filename, beadType1='TiA', beadType2='TiB', 
+                       beadCharge1=-0.119140625, beadCharge2=0, beadMass=151.859):
+    xmol = readXMOL(xmol_filename)
+    """Writes an mcm file for a CG slab from xmol file"""
+    
     with open(filename, 'w') as file:
         file.write(str(len(xmol)) + '\n')
         file.write('#\n')
         for line_index in range(len(xmol)):
             file.write(str(xmol[line_index][0]) + ' ' + str(xmol[line_index][1]) + 
                       ' ' + str(xmol[line_index][2]) + ' ' + str(xmol[line_index][3]) + 
-                      ' ' + str(mass) + ' ')
-            if str(xmol[line_index][0]) == 'TiA':
-                file.write(str(TiA_charge) + ' 1 ' + 'TiA\n')
-            elif str(xmol[line_index][0]) == 'TiB':
-                file.write(str(TiB_charge) + ' 2 ' + 'TiB\n')
+                      ' ' + str(beadMass) + ' ')
+            if str(xmol[line_index][0]) == beadType1:
+                file.write(str(beadCharge1) + ' 1 ' + beadType1 + '\n')
+            elif str(xmol[line_index][0]) == beadType2:
+                file.write(str(beadCharge2) + ' 2 ' + beadType2 + '\n')
         file.write('0\n')
         file.write('0  Order=1-2-3\n')
 
@@ -104,3 +109,19 @@ def readPDBdata(filename):
     xyz = np.array(xyz)
     
     return xyz, atomnames
+
+def pdb2xmol(filename, pdb_filename, pbc_box=[140.231, 140.231, 130.000]):
+    """Converts pdb to xmol"""
+    xyz, atomnames = readPDBdata(pdb_filename)
+
+    with open(filename, 'w') as file:
+        file.write(format(len(xyz)).rjust(12) + '\n')
+        pbc_record = ' BOX:'
+        for axis_index in range(len(pbc_box)):
+            pbc_record += format(float(pbc_box[axis_index]), '#.3f').rjust(10)
+        file.write(pbc_record + '\n')
+        for atom_index in range(len(xyz)):
+            file.write(format(atomnames[atom_index]).ljust(13))
+            for axis_index in range(len(xyz[atom_index])):
+                file.write(format(float(xyz[atom_index][axis_index]),'#.5f').rjust(14))
+            file.write('\n')
