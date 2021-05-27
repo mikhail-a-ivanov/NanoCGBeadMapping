@@ -246,7 +246,7 @@ def writeCGSlabPDB(CGbeads, resname, atomnames, pbc_box):
 
     filename = resname + "-" + str(len(CGbeads)) + ".pdb"
     file_header = "REMARK    resname: " + resname + "; " + str(len(CGbeads)) + " " + "CG beads" + "\n"
-    pbc_record = "CRYST1"
+    pbc_record = "CRYST1".rjust(6)
     for axis_index in range(len(pbc_box)):
         pbc_record += format(float(pbc_box[axis_index]) * 10, '#.3f').rjust(9)
     pbc_record += "  90.00  90.00  90.00 P 1           1"
@@ -257,15 +257,18 @@ def writeCGSlabPDB(CGbeads, resname, atomnames, pbc_box):
         file.write(pbc_record + '\n')
         file.write("MODEL   0" + '\n')
         for CGbead_index in range(len(CGbeads)):
-            file.write("ATOM")
-            file.write(format(str(CGbead_index+1)).rjust(8))
-            file.write(format(atomnames[CGbead_index]).rjust(4))
-            file.write(format(resname + " A").rjust(8))
+            file.write("ATOM  ".rjust(6))
+            file.write(format(str(CGbead_index+1)).rjust(5))
+            file.write(format(atomnames[CGbead_index]).rjust(5))
+            file.write(format(resname).rjust(4))
+            file.write(format("A").rjust(2))
             file.write(format("1").rjust(4))
+            file.write(format("").rjust(5))
             for axis_index in range(len(CGbeads[CGbead_index])):
-                file.write(format(CGbeads[CGbead_index][axis_index], '#.3f').rjust(9))
-            file.write(format('  1.00  0.00  '))
-            file.write(format(atomnames[CGbead_index]).rjust(11))
+                file.write(format(CGbeads[CGbead_index][axis_index], '#.3f').rjust(7))
+                file.write(format("").rjust(1))
+            file.write(format('1.00 0.00').rjust(12))
+            file.write(format(atomnames[CGbead_index]).rjust(12))
             file.write("\n")
         file.write("TER")
         file.write(format(str(len(CGbeads) + 1).rjust(9)))
@@ -273,10 +276,11 @@ def writeCGSlabPDB(CGbeads, resname, atomnames, pbc_box):
         file.write(format("1\n").rjust(4))
         file.write('ENDMDL\n')
         file.write('END\n')
+        print(filename, "saved.")
 
 
 # Execute the script:
-slab, pbc_box, atomnames, atom_indices = getCGSlabCoordinates(beadType1='TiA', beadType2='TiB', latticePoints=32, width=3, originalSlabGeometry='anatase-101/last_frame.xmol')
+slab, pbc_box, atomnames, atom_indices = getCGSlabCoordinates(beadType1='TiA', beadType2='TiB', latticePoints=32, width=3, originalSlabGeometry='last_frame.xmol')
 
-writeCGSlabGRO(slab, 'a101', atomnames, pbc_box)
-writeCGSlabPDB(slab, 'a101', atomnames, pbc_box)
+#writeCGSlabGRO(slab, 'a101', atomnames, pbc_box)
+writeCGSlabPDB(slab, 'a', atomnames, pbc_box)
