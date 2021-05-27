@@ -98,8 +98,10 @@ def readPDBdata(filename):
     pdb_data = []
     with open(filename, 'r') as file:
         lines = file.readlines()
-        for line in lines[5:-1]:
-            pdb_data.append(line.split())
+        for line in lines:
+            line = line.split()
+            if line[0] == 'ATOM':
+                pdb_data.append(line)
 
     xyz = []
     atomnames = []
