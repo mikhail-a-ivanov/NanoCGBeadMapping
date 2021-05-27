@@ -278,5 +278,5 @@ def writeCGSlabPDB(CGbeads, resname, atomnames, pbc_box):
 # Execute the script:
 slab, pbc_box, atomnames, atom_indices = getCGSlabCoordinates(beadType1='TiA', beadType2='TiB', latticePoints=32, width=3, originalSlabGeometry='anatase-101/last_frame.xmol')
 
-#writeCGSlabGRO(slab, 'a101', atomnames, pbc_box)
+writeCGSlabGRO(slab, 'a101', atomnames, pbc_box)
 writeCGSlabPDB(slab, 'a101', atomnames, pbc_box)
