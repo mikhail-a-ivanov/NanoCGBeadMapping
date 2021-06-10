@@ -121,6 +121,7 @@ def getBeadTypeSeparation(beadCoordinates1, beadCoordinates2, axis=2):
     assert type(beadCoordinates2) == np.ndarray, 'Could not read bead 2 coordinates!'
 
     separation = (getBeadSeparation(beadCoordinates1, axis=2) - getBeadSeparation(beadCoordinates2, axis=2)) / 2
+    print(f'Bead interplanar separation = {separation} nm')
 
     return separation
 
@@ -135,6 +136,7 @@ def getBeadsPerArea(beadCoordinates, box, axis=2):
 
     # Beads per area per plane
     beadsPerArea = len(beadCoordinates) / (box[dimensions[0]] * box[dimensions[1]]) / 2
+    print(f'Bead surface density = {beadsPerArea} beads/nm^2')
 
     return beadsPerArea
 
