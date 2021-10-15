@@ -140,20 +140,45 @@ def getBeadsPerArea(beadCoordinates, box, axis=2):
 
     return beadsPerArea
 
-def fibonacciLattice(N, r, r0 = [0, 0, 0]):
-    """Evenly distributed N points on a sphere with radius r with r0 as the center
-    using the Fibonacci lattice algorithm"""
+def fibonacciLattice(N, r, r0 = [0, 0, 0], canonical=True):
+    """Evenly distributes N points on a sphere of radius r with the center
+    located at r0. Use canonical or offset Fibonacci lattice 
+    (offset increases the maximum distance between the points,
+    good when N > 1000)"""
     goldenRatio = (1 + 5**0.5)/2
     i = np.arange(0, N)
-    theta = 2 * np.pi * i / goldenRatio
-    phi = np.arccos(1 - 2 * (i + 0.5) / N)
+
+    if canonical:
+        theta = 2 * np.pi * i / goldenRatio
+        phi = np.arccos(1 - 2 * (i + 0.5) / N)
+
+    else:
+        if N >= 600000:
+            epsilon = 214
+        elif N >= 400000:
+            epsilon = 75
+        elif N >= 11000:
+            epsilon = 27
+        elif N >= 890:
+            epsilon = 10
+        elif N >= 177:
+            epsilon = 3.33
+        elif N >= 24:
+            epsilon = 1.33
+        else:
+            epsilon = 0.33
+        
+        theta = 2 * np.pi * i / goldenRatio
+        phi = np.arccos(1 - 2 * (i + epsilon)/(N - 1 + 2*epsilon))
+    
     x = r * (np.cos(theta) * np.sin(phi)) + r0[0]
     y = r * (np.sin(theta) * np.sin(phi)) + r0[1]
     z = r * np.cos(phi) + r0[2]
 
     return x,y,z
 
-def getCGSphereCoordinates(beadType1='TiA', beadType2='TiB', outerRadius=2, originalSlabGeometry='last_frame.xmol', pbc_box=[10, 10, 10]):
+def getCGSphereCoordinates(beadType1='TiA', beadType2='TiB', outerRadius=2, 
+            originalSlabGeometry='last_frame.xmol', pbc_box=[10, 10, 10], canonicalFibonacci=True):
     """Get the coordinates of CG spherical nanoparticle using the Fibonacci lattice algorithm"""
     # Read the configuration of the original slab
     CGslabFile, box = readCGSlab(originalSlabGeometry)
@@ -182,8 +207,8 @@ def getCGSphereCoordinates(beadType1='TiA', beadType2='TiB', outerRadius=2, orig
 
     # Get the coordinates of the CG beads on each subshell:
     r0 = [pbc_box[0]/2, pbc_box[1]/2, pbc_box[2]/2]
-    outerX, outerY, outerZ = fibonacciLattice(outerN, outerRadius, r0)
-    innerX, innerY, innerZ = fibonacciLattice(innerN, innerRadius, r0)
+    outerX, outerY, outerZ = fibonacciLattice(outerN, outerRadius, r0, canonical=canonicalFibonacci)
+    innerX, innerY, innerZ = fibonacciLattice(innerN, innerRadius, r0, canonical=canonicalFibonacci)
 
     outerShell = np.array([outerX.T, outerY.T, outerZ.T]).T
     innerShell = np.array([innerX.T, innerY.T, innerZ.T]).T
@@ -348,5 +373,6 @@ def writeCGSlabPDB(CGbeads, resname, atomnames, pbc_box):
 #writeCGSlabGRO(slab, 'a101', atomnames, pbc_box)
 #writeCGSlabPDB(slab, 'a', atomnames, pbc_box)
 
-NP, pbc_box, atomnames = getCGSphereCoordinates(beadType1='TiA', beadType2='TiB', outerRadius=2, originalSlabGeometry='last_frame.xmol', pbc_box=[10, 10, 10])
+NP, pbc_box, atomnames = getCGSphereCoordinates(beadType1='TiA', beadType2='TiB', outerRadius=2, 
+originalSlabGeometry='last_frame.xmol', pbc_box=[14.444, 14.444, 14.444], canonicalFibonacci=True)
 writeCGSlabPDB(NP, 'a', atomnames, pbc_box)
