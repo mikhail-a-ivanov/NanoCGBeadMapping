@@ -56,13 +56,12 @@ def mmol2gro(mmol_filename, filename, resname):
         file.write(format('10.00000').rjust(10))
         file.write(format('10.00000\n').rjust(10))
 
-def mmol2pdb(mmol_filename, filename, resname):
-    """Writes mmol to pdb"""
+def mmol2pdb(mmol_filename, filename, resname, pbc_box = [100., 100., 100.]):
+    """Writes mmol to pdb and centers the molecule"""
     mmol = readMMOL(mmol_filename)
 
     file_header = "REMARK    " + filename + '\n'
     pbc_record = "CRYST1"
-    pbc_box = [100., 100., 100.]
     for axis_index in range(len(pbc_box)):
         pbc_record += format(float(pbc_box[axis_index]), '#.3f').rjust(9)
     pbc_record += "  90.00  90.00  90.00 P 1           1"
@@ -80,7 +79,7 @@ def mmol2pdb(mmol_filename, filename, resname):
             file.write(format("1").rjust(4))
             file.write(format("").rjust(5))
             for axis_index in range(len(mmol[atom_index][1:4])):
-                file.write(format((float(mmol[atom_index][1:4][axis_index])), '#.3f').rjust(7))
+                file.write(format((float(mmol[atom_index][1:4][axis_index]) + pbc_box[axis_index]/2), '#.3f').rjust(7))
                 file.write(format("").rjust(1))
             file.write(format('1.00 0.00').rjust(12))
             file.write(format(format(mmol[atom_index][0]).rjust(12)))
