@@ -105,7 +105,10 @@ def readPDBdata(filename):
     xyz = []
     atomnames = []
     for line in pdb_data:
-        xyz.append(np.array([float(line[6]), float(line[7]), float(line[8])]))
+        if len(line) == 12:
+            xyz.append(np.array([float(line[6]), float(line[7]), float(line[8])]))
+        elif len(line) == 11:
+            xyz.append(np.array([float(line[5]), float(line[6]), float(line[7])]))
         atomnames.append(line[-1])
     xyz = np.array(xyz)
     
