@@ -98,22 +98,14 @@ def readPDBdata(filename):
     with open(filename, 'r') as file:
         lines = file.readlines()
         for line in lines:
-            line = line.split()
-            if line[0] == 'ATOM':
+            if line.split()[0] == 'ATOM':
                 pdb_data.append(line)
 
     xyz = []
     atomnames = []
     for line in pdb_data:
-        if len(line) == 12:
-            xyz.append(np.array([float(line[6]), float(line[7]), float(line[8])]))
-            atomnames.append(line[-1])
-        elif len(line) == 11:
-            xyz.append(np.array([float(line[5]), float(line[6]), float(line[7])]))
-            atomnames.append(line[-1])
-        elif len(line) == 10:
-            xyz.append(np.array([float(line[5]), float(line[6]), float(line[7])]))
-            atomnames.append(line[2])
+            xyz.append(np.array([float(line[31:38]), float(line[39:46]), float(line[47:54])]))
+            atomnames.append(line.split()[2])
     xyz = np.array(xyz)
     
     return xyz, atomnames
